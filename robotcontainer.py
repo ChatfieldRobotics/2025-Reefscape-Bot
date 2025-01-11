@@ -56,7 +56,6 @@ class RobotContainer:
                         self.driverController.getRightX(), OIConstants.kDriveDeadband
                     ),
                     True,
-                    True,
                 ),
                 self.robotDrive,
             )

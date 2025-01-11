@@ -41,21 +41,21 @@ class DriveConstants:
     )
 
     # Angular offsets of the modules relative to the chassis in radians
-    kFrontLeftChassisAngularOffset = -math.pi / 2
+    kFrontLeftChassisAngularOffset = -math.pi
     kFrontRightChassisAngularOffset = 0
-    kBackLeftChassisAngularOffset = math.pi
+    kBackLeftChassisAngularOffset = math.pi / 2
     kBackRightChassisAngularOffset = math.pi / 2
 
     # SPARK MAX CAN IDs
-    kFrontLeftDrivingCanId = 11
-    kRearLeftDrivingCanId = 13
-    kFrontRightDrivingCanId = 15
-    kRearRightDrivingCanId = 17
+    kFrontLeftDrivingCanId = 2
+    kRearLeftDrivingCanId = 4
+    kFrontRightDrivingCanId = 6
+    kRearRightDrivingCanId = 8
 
-    kFrontLeftTurningCanId = 10
-    kRearLeftTurningCanId = 12
-    kFrontRightTurningCanId = 14
-    kRearRightTurningCanId = 16
+    kFrontLeftTurningCanId = 1
+    kRearLeftTurningCanId = 3
+    kFrontRightTurningCanId = 5
+    kRearRightTurningCanId = 7
 
     kGyroReversed = False
 

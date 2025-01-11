@@ -99,16 +99,14 @@ class MAXSwerveModule:
         )
 
         # Optimize the reference state to avoid spinning further than 90 degrees.
-        optimizedDesiredState = SwerveModuleState.optimize(
-            correctedDesiredState, Rotation2d(self.turningEncoder.getPosition())
-        )
+        correctedDesiredState.optimize(Rotation2d(self.turningEncoder.getPosition()))
 
         # Command driving and turning SPARKS MAX towards their respective setpoints.
         self.drivingClosedLoopController.setReference(
-            optimizedDesiredState.speed, SparkMax.ControlType.kVelocity
+            correctedDesiredState.speed, SparkMax.ControlType.kVelocity
         )
-        self.turningPIDController.setReference(
-            optimizedDesiredState.angle.radians(), SparkMax.ControlType.kPosition
+        self.turningClosedLoopController.setReference(
+            correctedDesiredState.angle.radians(), SparkMax.ControlType.kPosition
         )
 
         self.desiredState = desiredState
