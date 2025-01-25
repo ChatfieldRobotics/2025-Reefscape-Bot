@@ -111,6 +111,16 @@ class MAXSwerveModule:
 
         self.desiredState = desiredState
 
+    def stopModules(self) -> None:
+        self.drivingClosedLoopController.setReference(
+            0.0, SparkMax.ControlType.kVelocity
+        )
+        self.turningClosedLoopController.setReference(
+            0.0, SparkMax.ControlType.kPosition
+        )
+
+        self.desiredState = SwerveModuleState(0.0, Rotation2d(0.0))
+
     def resetEncoders(self) -> None:
         """
         Zeroes all the SwerveModule encoders.

@@ -14,7 +14,18 @@ from wpimath.geometry import Translation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 from wpimath.trajectory import TrapezoidProfile
 
-from rev import SparkMax
+from wpimath.controller import PIDController, ProfiledPIDControllerRadians
+from wpimath.geometry import Pose2d, Rotation2d, Translation2d
+from wpimath.trajectory import (
+    TrajectoryConfig,
+    TrajectoryGenerator,
+    TrapezoidProfileRadians,
+)
+from wpimath.controller import (
+    HolonomicDriveController,
+    PIDController,
+    ProfiledPIDControllerRadians,
+)
 
 
 class NeoMotorConstants:
@@ -41,21 +52,21 @@ class DriveConstants:
     )
 
     # Angular offsets of the modules relative to the chassis in radians
-    kFrontLeftChassisAngularOffset = -math.pi
+    kFrontLeftChassisAngularOffset = -math.pi / 2
     kFrontRightChassisAngularOffset = 0
-    kBackLeftChassisAngularOffset = math.pi / 2
+    kBackLeftChassisAngularOffset = math.pi
     kBackRightChassisAngularOffset = math.pi / 2
 
     # SPARK MAX CAN IDs
     kFrontLeftDrivingCanId = 2
     kRearLeftDrivingCanId = 4
-    kFrontRightDrivingCanId = 6
-    kRearRightDrivingCanId = 8
+    kFrontRightDrivingCanId = 8
+    kRearRightDrivingCanId = 6
 
     kFrontLeftTurningCanId = 1
     kRearLeftTurningCanId = 3
-    kFrontRightTurningCanId = 5
-    kRearRightTurningCanId = 7
+    kFrontRightTurningCanId = 7
+    kRearRightTurningCanId = 5
 
     kGyroReversed = False
 
@@ -83,15 +94,35 @@ class OIConstants:
 
 
 class AutoConstants:
-    kMaxSpeedMetersPerSecond = 3
-    kMaxAccelerationMetersPerSecondSquared = 3
-    kMaxAngularSpeedRadiansPerSecond = math.pi
-    kMaxAngularSpeedRadiansPerSecondSquared = math.pi
+    kMaxSpeedMetersPerSecond = 3.0
+    kMaxAccelerationMetersPerSecondSquared = 3.0
+    kMaxAngularSpeedRadiansPerSecond = 2.5
+    kMaxAngularSpeedRadiansPerSecondSquared = 4.0
 
-    kPXController = 1
-    kPYController = 1
-    kPThetaController = 1
+    config = TrajectoryConfig(
+        kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared
+    )
+    config.setKinematics(DriveConstants.kDriveKinematics)
 
-    kThetaControllerConstraints = TrapezoidProfile.Constraints(
+    exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+        Pose2d(0, 0, Rotation2d(0)),
+        [Translation2d(1, 1), Translation2d(2, -1)],
+        Pose2d(3, 0, Rotation2d(0)),
+        config,
+    )
+
+    kThetaControllerConstraints = TrapezoidProfileRadians.Constraints(
         kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared
+    )
+
+    kPXController = PIDController(0.25, 0.025, 0.05)
+    kPYController = PIDController(0.25, 0.025, 0.05)
+
+    kPThetaController = ProfiledPIDControllerRadians(
+        0.8, 0.05, 0.0, kThetaControllerConstraints
+    )
+    kPThetaController.enableContinuousInput(-math.pi, math.pi)
+
+    PIDController = HolonomicDriveController(
+        kPXController, kPYController, kPThetaController
     )

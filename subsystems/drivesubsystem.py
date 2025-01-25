@@ -19,6 +19,7 @@ from .maxswervemodule import MAXSwerveModule
 
 from phoenix6.hardware import Pigeon2
 
+
 class DriveSubsystem(Subsystem):
     def __init__(self) -> None:
         super().__init__()
@@ -51,6 +52,8 @@ class DriveSubsystem(Subsystem):
         # The gyro sensor
         self.gyro: Pigeon2 = Pigeon2(0, "rio")
 
+        self.zeroHeading()
+
         # Odometry class for tracking robot pose
         self.odometry = SwerveDrive4Odometry(
             DriveConstants.kDriveKinematics,
@@ -63,8 +66,8 @@ class DriveSubsystem(Subsystem):
             ),
         )
 
-    def getGyroAngle(self) -> float:
-        return self.gyro.get_yaw().value_as_double
+    def getGyroAngle(self):
+        return self.gyro.get_yaw().value
 
     def periodic(self) -> None:
         # Update the odometry in the periodic block
@@ -121,10 +124,12 @@ class DriveSubsystem(Subsystem):
         ySpeedDelivered: float = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond
         rotDelivered: float = rot * DriveConstants.kMaxAngularSpeed
 
+        wpilib.SmartDashboard.putNumber("Rotation", self.getGyroAngle())
+
         swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
             ChassisSpeeds.fromFieldRelativeSpeeds(
-                xSpeedDelivered, 
-                ySpeedDelivered, 
+                xSpeedDelivered,
+                ySpeedDelivered,
                 rotDelivered,
                 Rotation2d.fromDegrees(self.getGyroAngle()),
             )
@@ -132,7 +137,8 @@ class DriveSubsystem(Subsystem):
             else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
         )
         SwerveDrive4Kinematics.desaturateWheelSpeeds(
-            swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond)
+            swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond
+        )
         self.frontLeft.setDesiredState(swerveModuleStates[0])
         self.frontRight.setDesiredState(swerveModuleStates[1])
         self.rearLeft.setDesiredState(swerveModuleStates[2])
@@ -165,6 +171,12 @@ class DriveSubsystem(Subsystem):
         self.rearLeft.setDesiredState(rl)
         self.rearRight.setDesiredState(rr)
 
+    def stop(self) -> None:
+        self.frontLeft.stopModules()
+        self.frontRight.stopModules()
+        self.rearLeft.stopModules()
+        self.rearRight.stopModules()
+
     def resetEncoders(self) -> None:
         """Resets the drive encoders to currently read a position of 0."""
         self.frontLeft.resetEncoders()
@@ -188,4 +200,6 @@ class DriveSubsystem(Subsystem):
 
         :returns: The turn rate of the robot, in degrees per second
         """
-        return self.gyro.getRate() * (-1.0 if DriveConstants.kGyroReversed else 1.0)
+        return self.gyro.get_angular_velocity_y_world() * (
+            -1.0 if DriveConstants.kGyroReversed else 1.0
+        )
