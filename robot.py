@@ -29,7 +29,7 @@ class MyRobot(commands2.TimedCommandRobot):
     def teleopInit(self) -> None:
         if self.autonomousCommand:
             self.autonomousCommand.cancel()
-
+    
     def testInit(self) -> None:
         commands2.CommandScheduler.getInstance().cancelAll()
 

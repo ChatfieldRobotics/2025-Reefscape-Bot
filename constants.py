@@ -39,9 +39,9 @@ class DriveConstants:
     kMaxAngularSpeed = math.tau  # radians per second
 
     # Chassis configuration
-    kTrackWidth = units.inchesToMeters(26.5)
+    kTrackWidth = units.inchesToMeters(24.5)
     # Distance between centers of right and left wheels on robot
-    kWheelBase = units.inchesToMeters(26.5)
+    kWheelBase = units.inchesToMeters(24.5)
 
     # Distance between front and back wheels on robot
     kDriveKinematics = SwerveDrive4Kinematics(
@@ -96,8 +96,8 @@ class OIConstants:
 class AutoConstants:
     kMaxSpeedMetersPerSecond = 3.0
     kMaxAccelerationMetersPerSecondSquared = 3.0
-    kMaxAngularSpeedRadiansPerSecond = 2.5
-    kMaxAngularSpeedRadiansPerSecondSquared = 4.0
+    kMaxAngularSpeedRadiansPerSecond = 4.0
+    kMaxAngularSpeedRadiansPerSecondSquared = 2.5
 
     config = TrajectoryConfig(
         kMaxSpeedMetersPerSecond, kMaxAccelerationMetersPerSecondSquared
@@ -119,7 +119,7 @@ class AutoConstants:
     kPYController = PIDController(0.25, 0.025, 0.05)
 
     kPThetaController = ProfiledPIDControllerRadians(
-        0.8, 0.05, 0.0, kThetaControllerConstraints
+        2.0, 0.05, 0.002, kThetaControllerConstraints
     )
     kPThetaController.enableContinuousInput(-math.pi, math.pi)
 

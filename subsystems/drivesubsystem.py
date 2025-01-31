@@ -57,7 +57,7 @@ class DriveSubsystem(Subsystem):
         # Odometry class for tracking robot pose
         self.odometry = SwerveDrive4Odometry(
             DriveConstants.kDriveKinematics,
-            Rotation2d.fromDegrees(self.getGyroAngle()),
+            self.getGyroAngle(),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -67,12 +67,12 @@ class DriveSubsystem(Subsystem):
         )
 
     def getGyroAngle(self):
-        return self.gyro.get_yaw().value
+        return self.gyro.getRotation2d()
 
     def periodic(self) -> None:
         # Update the odometry in the periodic block
         self.odometry.update(
-            Rotation2d.fromDegrees(self.getGyroAngle()),
+            self.getGyroAngle(),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -95,7 +95,7 @@ class DriveSubsystem(Subsystem):
 
         """
         self.odometry.resetPosition(
-            Rotation2d.fromDegrees(self.getGyroAngle()),
+            self.getGyroAngle(),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -124,14 +124,12 @@ class DriveSubsystem(Subsystem):
         ySpeedDelivered: float = ySpeed * DriveConstants.kMaxSpeedMetersPerSecond
         rotDelivered: float = rot * DriveConstants.kMaxAngularSpeed
 
-        wpilib.SmartDashboard.putNumber("Rotation", self.getGyroAngle())
-
         swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
             ChassisSpeeds.fromFieldRelativeSpeeds(
                 xSpeedDelivered,
                 ySpeedDelivered,
                 rotDelivered,
-                Rotation2d.fromDegrees(self.getGyroAngle()),
+                self.getGyroAngle(),
             )
             if fieldRelative
             else ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
@@ -193,7 +191,7 @@ class DriveSubsystem(Subsystem):
 
         :returns: the robot's heading in degrees, from -180 to 180
         """
-        return Rotation2d.fromDegrees(self.getGyroAngle()).degrees()
+        return self.getGyroAngle().degrees()
 
     def getTurnRate(self) -> float:
         """Returns the turn rate of the robot.

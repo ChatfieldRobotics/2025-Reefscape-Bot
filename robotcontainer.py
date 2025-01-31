@@ -25,6 +25,7 @@ from tagcentering import TagCentering
 from commands2 import Command, RunCommand, InstantCommand
 from commands2.button import JoystickButton
 
+from photonlibpy import PhotonCamera
 
 class RobotContainer:
     """
@@ -37,6 +38,7 @@ class RobotContainer:
     def __init__(self) -> None:
         # The robot's subsystems
         self.robotDrive = DriveSubsystem()
+        self.camera = PhotonCamera("USB_ATag_Camera")
 
         # The driver's controller
         self.driverController = wpilib.XboxController(OIConstants.kDriverControllerPort)
@@ -86,6 +88,7 @@ class RobotContainer:
                 self.robotDrive,
                 DriveConstants.kDriveKinematics,
                 self.defaultDriveCommand,
+                self.camera
             )
         )
 
