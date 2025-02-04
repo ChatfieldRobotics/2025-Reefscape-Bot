@@ -1,6 +1,8 @@
 import commands2
+import pathplannerlib.controller
 import wpilib
 from commands2 import Command
+from wpimath.controller import PIDController
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.kinematics import SwerveDrive4Kinematics
 from wpimath.trajectory import Trajectory, TrajectoryGenerator
@@ -11,6 +13,12 @@ from constants import AutoConstants, DriveConstants
 from subsystems.drivesubsystem import DriveSubsystem
 
 from photonlibpy import PhotonCamera
+from pathplannerlib.path import PathPlannerPath, PathConstraints, GoalEndState, Waypoint
+from pathplannerlib.commands import FollowPathCommand
+from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import RobotConfig, PIDConstants
+from wpimath.geometry import Pose2d, Rotation2d
+
 
 class TagCentering(Command):
     def __init__(
@@ -47,37 +55,44 @@ class TagCentering(Command):
         
         wpilib.SmartDashboard.putNumber("Angle: ", rotation)
 
-        start_pose = Pose2d(0.0, 0.0, 0.0)
-        end_pose = Pose2d(pose.x, pose.y, rotation)
-        interior_waypoints = []
-
-        self.trajectory: Trajectory = TrajectoryGenerator.generateTrajectory(
-            start_pose, interior_waypoints, end_pose, AutoConstants.config
+        waypoints: list[Waypoint] = PathPlannerPath.waypointsFromPoses(
+            self.subsystem.getPose(),
+            Pose2d(Translation2d(pose.x, pose.y), Rotation2d(rotation))
         )
 
-        self.field.getObject("Trajectory").setTrajectory(self.trajectory)
+        constraints = PathConstraints(AutoConstants.kMaxSpeedMetersPerSecond, AutoConstants.kMaxAccelerationMetersPerSecondSquared, AutoConstants.kMaxAngularSpeedRadiansPerSecond, AutoConstants.kMaxAngularSpeedRadiansPerSecondSquared)
 
-        self.subsystem.resetOdometry(self.trajectory.initialPose())
+        path = PathPlannerPath(
+            waypoints,
+            constraints,
+            None,
+            GoalEndState(0.0, Rotation2d(rotation))
+        )
 
-        self.swerveControllerCommand = commands2.SwerveControllerCommand(
-            self.trajectory,
+        path.preventFlipping = True
+
+        self.followPathCommand: FollowPathCommand = FollowPathCommand(      
+            path,
             self.subsystem.getPose,
-            DriveConstants.kDriveKinematics,
-            AutoConstants.PIDController,
-            self.subsystem.setModuleStates,
-            (self.subsystem,),
-        )
-
-        self.swerveControllerCommand.schedule()
+            self.subsystem.getRobotRelativeSpeeds,
+            self.subsystem.driveRobotRelative,
+            PPHolonomicDriveController(
+                PIDConstants(1.0, 0, 0),
+                PIDConstants(1.0, 0, 0)
+            ),
+            RobotConfig.fromGUISettings(),
+            lambda : False,
+            self.subsystem
+        ).schedule()
 
     def execute(self):
         pass
 
     def isFinished(self):
-        return self.swerveControllerCommand.isFinished()
+        return self.followPathCommand.isFinished()
 
     def end(self, interrupted: bool):
         if not interrupted:
-            self.swerveControllerCommand.cancel()
+            self.followPathCommand.isFinished()
 
         self.subsystem.setDefaultCommand(self.default_command)

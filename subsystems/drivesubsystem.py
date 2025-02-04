@@ -12,6 +12,7 @@ from wpimath.kinematics import (
     SwerveDrive4Kinematics,
     SwerveDrive4Odometry,
 )
+from wpimath.controller import SimpleMotorFeedforwardMeters
 
 from constants import DriveConstants
 import swerveutils
@@ -142,6 +143,25 @@ class DriveSubsystem(Subsystem):
         self.rearLeft.setDesiredState(swerveModuleStates[2])
         self.rearRight.setDesiredState(swerveModuleStates[3])
 
+    def driveRobotRelative(self, chasisSpeeds: ChassisSpeeds, driveFeedForwards) -> None:
+        wpilib.SmartDashboard.putString("FeedForwardType", str(type(driveFeedForwards)))
+
+        # swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(chasisSpeeds)
+
+        # if driveFeedForwards is not None:
+        #     for i, state in enumerate(swerveModuleStates):
+        #         state.speed += driveFeedForwards[i]
+
+        # self.frontLeft.setDesiredState(swerveModuleStates[0])
+        # self.frontRight.setDesiredState(swerveModuleStates[1])
+        # self.rearLeft.setDesiredState(swerveModuleStates[2])
+        # self.rearRight.setDesiredState(swerveModuleStates[3])
+
+    def getRobotRelativeSpeeds(self) -> ChassisSpeeds:
+        module_states = self.getModuleStates()
+        robot_relative_speeds = DriveConstants.kDriveKinematics.toChassisSpeeds(module_states)
+        return robot_relative_speeds
+
     def setX(self) -> None:
         """Sets the wheels into an X formation to prevent movement."""
         self.frontLeft.setDesiredState(SwerveModuleState(0, Rotation2d.fromDegrees(45)))
@@ -168,6 +188,14 @@ class DriveSubsystem(Subsystem):
         self.frontRight.setDesiredState(fr)
         self.rearLeft.setDesiredState(rl)
         self.rearRight.setDesiredState(rr)
+
+    def getModuleStates(self):
+        return [
+            self.frontLeft.getState(),
+            self.frontRight.getState(),
+            self.rearLeft.getState(),
+            self.rearRight.getState()
+        ]
 
     def stop(self) -> None:
         self.frontLeft.stopModules()
